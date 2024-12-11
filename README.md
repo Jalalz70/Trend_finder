@@ -11,11 +11,11 @@ A simple Python program to analyze stock trends. The program takes a list of sto
 ## Installation
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/stock-trend-analyzer.git
+    git clone https://github.com/Jalalz70/Trend_finder.git
     ```
 2. Navigate to the project directory:
     ```sh
-    cd stock-trend-analyzer
+    cd Trend_finder
     ```
 3. Install the required dependencies:
     ```sh
