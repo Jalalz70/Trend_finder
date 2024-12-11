@@ -1,0 +1,49 @@
+#Trend Finder V1
+
+import tsemodule5
+import numpy as np
+import matplotlib.pyplot as plt
+import arabic_reshaper
+from bidi.algorithm import get_display
+from scipy.signal import find_peaks
+up_trend =[]
+down_trend =[]
+
+# inputs
+fractal_scale =2
+symbols = ['شپنا', 'شستا', 'خودرو', 'خساپا', 'فارس', 'فولاد','فملی','شکربن','شبندر','اهرم','وملی','وبملت','وسینا','شتران','شبریز','ریشمک','وغدیر','طلا','اطلس']
+get_new_data = False
+show_chart = True
+
+
+
+
+stocks = {}
+for symbol in symbols:
+    data = tsemodule5.stock(symbol,newfile = get_new_data)  
+    
+    prices = np.array(data['<CLOSE>'])
+    volumes = np.array(data['<VOL>'])
+    dates = np.array(data.index)
+    peaks, _ = find_peaks(prices,width=fractal_scale)
+    troughs, _ = find_peaks(-prices,width=fractal_scale)
+    
+     
+    
+    
+    if prices[peaks][0]>prices[peaks][1] and prices[troughs][0] > prices[troughs][1]:
+        up_trend.append(symbol)
+    if prices[peaks][0] < prices[peaks][1] and prices[troughs][0] < prices[troughs][1]:
+        down_trend.append(symbol)
+
+
+
+    if show_chart == True:
+        plt.plot(dates,prices, label='Line plot')
+        plt.title(get_display(arabic_reshaper.reshape(symbol)))
+        plt.plot( dates[peaks], prices[peaks], "o", label=get_display(arabic_reshaper.reshape('قله')), color='red')
+        plt.plot(dates[troughs], prices[troughs], "x", label=arabic_reshaper.reshape('کف ها'), color='black')
+        plt.show()
+
+print("up_trend: ",up_trend)
+print("down_trend: ",down_trend)
