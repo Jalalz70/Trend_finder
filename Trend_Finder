@@ -1,4 +1,4 @@
-#Trend Finder V1
+#Trend Finder V1.2
 
 import tsemodule5
 import numpy as np
@@ -13,29 +13,37 @@ down_trend =[]
 fractal_scale =2
 symbols = ['شپنا', 'شستا', 'خودرو', 'خساپا', 'فارس', 'فولاد','فملی','شکربن','شبندر','اهرم','وملی','وبملت','وسینا','شتران','شبریز','ریشمک','وغدیر','طلا','اطلس']
 get_new_data = False
-show_chart = True
+show_chart = False
+show_all = False
+
+
+if show_all == True:
+    symbols = tsemodule5.stocklist()
+#print(symbols)
 
 
 
 
-stocks = {}
 for symbol in symbols:
+    
     data = tsemodule5.stock(symbol,newfile = get_new_data)  
     
-    prices = np.array(data['<CLOSE>'])
-    volumes = np.array(data['<VOL>'])
-    dates = np.array(data.index)
-    peaks, _ = find_peaks(prices,width=fractal_scale)
-    troughs, _ = find_peaks(-prices,width=fractal_scale)
-    
+    try:
+        prices = np.array(data['<CLOSE>'])
+        volumes = np.array(data['<VOL>'])
+        dates = np.array(data.index)
+        peaks, _ = find_peaks(prices,width=fractal_scale)
+        troughs, _ = find_peaks(-prices,width=fractal_scale)
+   
      
     
     
-    if prices[peaks][0]>prices[peaks][1] and prices[troughs][0] > prices[troughs][1]:
-        up_trend.append(symbol)
-    if prices[peaks][0] < prices[peaks][1] and prices[troughs][0] < prices[troughs][1]:
-        down_trend.append(symbol)
-
+        if prices[peaks][0]>prices[peaks][1] and prices[troughs][0] > prices[troughs][1]:
+            up_trend.append(symbol)
+        if prices[peaks][0] < prices[peaks][1] and prices[troughs][0] < prices[troughs][1]:
+            down_trend.append(symbol)
+    except:
+        print("couldnot get data of ",symbol)
 
 
     if show_chart == True:
