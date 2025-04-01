@@ -1,6 +1,7 @@
-#Trend Finder V1.3
+#Trend Finder V1.4
 
 import tsemodule5
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import arabic_reshaper
@@ -9,6 +10,14 @@ from scipy.signal import find_peaks
 up_trend =[]
 down_trend =[]
 
+#Inputs________________________________________________________________
+fractal_scale =2
+symbols = ['شپنا', 'شستا', 'خودرو', 'خساپا', 'فارس', 'فولاد','فملی','شکربن','شبندر','اهرم','وملی','وبملت','وسینا','شتران','شبریز','ریشمک','وغدیر','طلا','اطلس','سحرخیز','شبندر']
+get_new_data = False
+show_chart = False
+show_all = False
+
+#Functions_______________________________________________________________
 def count_occurrences(lst):
     counts = {}
     for item in lst:
@@ -17,46 +26,52 @@ def count_occurrences(lst):
         else:
             counts[item] = 1
     return counts
-
-# inputs
-fractal_scale =2
-symbols = ['شپنا', 'شستا', 'خودرو', 'خساپا', 'فارس', 'فولاد','فملی','شکربن','شبندر','اهرم','وملی','وبملت','وسینا','شتران','شبریز','ریشمک','وغدیر','طلا','اطلس']
-get_new_data = False
-show_chart = True
-show_all = False
-
-
+    
+#create data frame_______________________________________________________
 if show_all == True:
     symbols = tsemodule5.stocklist()
-
+df = pd.DataFrame()
 for symbol in symbols:
-    data = tsemodule5.stock(symbol,newfile = get_new_data)  
+    data = tsemodule5.stock(symbol,newfile = get_new_data)
     try:
-        prices = np.array(data['<CLOSE>'])
-        dates = np.array(data.index)
+        newdf = pd.DataFrame({symbol : data['<CLOSE>']})
+        df = pd.concat([df,newdf], axis=1)
+    except:
+        print("Couldnot get data of ",symbol)
+        
+#Show chart and calculate direction___________________________________________        
+for j in range(df.shape[1]):
+    try:
+        prices = df[symbols[j]]
+        dates = df.index
         if show_chart == True:
-            print("show chart")
             peaks, _ = find_peaks(prices,width=fractal_scale)
             troughs, _ = find_peaks(-prices,width=fractal_scale)
             plt.plot(dates,prices, label='Line plot')
-            plt.title(get_display(arabic_reshaper.reshape(symbol)))
-            plt.plot( dates[peaks], prices[peaks], "o", label=get_display(arabic_reshaper.reshape('قله')), color='red')
-            plt.plot(dates[troughs], prices[troughs], "x", label=arabic_reshaper.reshape('کف ها'), color='black')
+            plt.title(get_display(arabic_reshaper.reshape(symbols[j])))
+            plt.plot( dates[peaks], prices.iloc[peaks], "o", label=get_display(arabic_reshaper.reshape('قله')), color='red')
+            plt.plot(dates[troughs], prices.iloc[troughs], "x", label=arabic_reshaper.reshape('کف ها'), color='black')
             plt.show()
     except:
         print("Couldnot get data of ",symbol)
+
     for i in range(1,11):
         try:
             peaks, _ = find_peaks(prices,width=i)
             troughs, _ = find_peaks(-prices,width=i)
-             
-            if prices[peaks][0]>prices[peaks][1] and prices[troughs][0] > prices[troughs][1] and prices[peaks][1]>0 and prices[troughs][1]>0:
-                if prices[0]>prices[troughs][0]:
-                    up_trend.append(symbol)
-            if prices[peaks][0] < prices[peaks][1] and prices[troughs][0] < prices[troughs][1] and prices[peaks][1]>0 and prices[troughs][1]>0:
-                if prices[0]<prices[peaks][0]:
-                    down_trend.append(symbol)
+            if prices.iloc[peaks[-1]]>prices.iloc[peaks[-2]] and prices.iloc[troughs[-1]] > prices.iloc[troughs[-2]] and prices.iloc[peaks[-1]]>0 and prices.iloc[troughs[-2]]>0:
+                if prices.iloc[-1]>prices.iloc[troughs[-1]]:
+                    up_trend.append(symbols[j])
+            if prices.iloc[peaks[-1]] < prices.iloc[peaks[-2]] and prices.iloc[troughs[-1]] < prices.iloc[troughs[-2]] and prices.iloc[peaks[-2]]>0 and prices.iloc[troughs[-2]]>0:
+                if prices.iloc[-1]<prices.iloc[peaks[-1]]:
+                    down_trend.append(symbols[j])
         except:
             True  
 print("up trend: ",count_occurrences(up_trend))
 print("down trend: ",count_occurrences(down_trend))
+
+#Show Corrolations_____________________________________________________        
+correlation = df.corr()
+correlation = df.corr().round(2)
+print("correlation: ")
+print(correlation)
